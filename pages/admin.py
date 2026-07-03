@@ -11,7 +11,11 @@ import os
 from datetime import datetime
 
 st.set_page_config(page_title="MDS Admin Paneli", layout="wide")
-
+st.markdown("""
+<style>
+[data-testid="stSidebarNav"] {display: none;}
+</style>
+""", unsafe_allow_html=True)
 # ── Şifre koruması ─────────────────────────────────────────────────────
 ADMIN_SIFRE = "MDS2026"  # ← buraya kendi şifreni yaz
 
