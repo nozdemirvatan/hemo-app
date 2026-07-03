@@ -1,0 +1,5 @@
+venv/
+__pycache__/
+*.pyc
+tahmin_log.csv
+MDS_modelleme_v2.csv
