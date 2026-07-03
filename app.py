@@ -19,7 +19,11 @@ import os
 from datetime import datetime
 
 st.set_page_config(page_title="MDS Hemogram Risk Hesaplayıcı", layout="wide")
-
+st.markdown("""
+<style>
+[data-testid="stSidebarNav"] {display: none;}
+</style>
+""", unsafe_allow_html=True)
 # ── Sabitler ───────────────────────────────────────────────────────────
 HAM = ['Monosit', 'Lökosit', 'Nötrofil', 'Lenfosit', 'Eritrosit',
        'Hemoglobin', 'Hematokrit', 'Ortalama Hücresel Hacim',
