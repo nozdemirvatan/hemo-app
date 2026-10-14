@@ -1,12 +1,4 @@
-"""
-MDS Hemogram Risk Hesaplayıcı
-==============================
-Tek mod: Tam Mod (D_tam) — hemogram + referans aralığı
-ROC-AUC ~0.851
 
-Çalıştırmak için:
-    streamlit run app.py
-"""
 
 import streamlit as st
 import numpy as np
@@ -80,6 +72,63 @@ def log_tahmin(mod, raw_values, prob):
         if not file_exists:
             writer.writeheader()
         writer.writerow(kayit)
+
+
+
+
+def read_tahmin_log():
+    LOG_FILE = "tahmin_log.csv"
+    if not os.path.exists(LOG_FILE):
+        return pd.DataFrame()
+    try:
+        return pd.read_csv(LOG_FILE, encoding="utf-8-sig")
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
+
+def delete_log_row(row_index):
+    LOG_FILE = "tahmin_log.csv"
+    df_log = read_tahmin_log()
+    if df_log.empty or row_index not in df_log.index:
+        return False
+    df_log = df_log.drop(index=row_index).reset_index(drop=True)
+    df_log.to_csv(LOG_FILE, index=False, encoding="utf-8-sig")
+    return True
+
+
+def render_log_manager():
+    st.subheader("Kayıt Yönetimi")
+    st.caption("Yanlış girilen tahmin kayıtlarından yalnızca seçtiğiniz kaydı silebilirsiniz.")
+
+    df_log = read_tahmin_log()
+    if df_log.empty:
+        st.info("Henüz kayıtlı tahmin bulunmuyor.")
+        return
+
+    df_display = df_log.copy()
+    df_display.insert(0, "Kayıt No", range(1, len(df_display) + 1))
+    st.dataframe(df_display, use_container_width=True, hide_index=True)
+
+    def _format_row(i):
+        row = df_log.loc[i]
+        tarih = row.get("tarih_saat", "Tarih yok")
+        skor = row.get("risk_skoru", "-")
+        karar = row.get("karar_dengeli", "-")
+        return f"{i + 1}. kayıt | {tarih} | risk={skor} | dengeli={karar}"
+
+    selected_idx = st.selectbox(
+        "Silmek istediğiniz kaydı seçiniz",
+        options=list(df_log.index),
+        format_func=_format_row,
+        key="delete_log_index"
+    )
+
+    if st.button("Seçilen Kaydı Sil", type="secondary", use_container_width=True):
+        if delete_log_row(selected_idx):
+            st.success(f"{selected_idx + 1}. kayıt silindi.")
+            st.rerun()
+        else:
+            st.error("Kayıt silinemedi. Sayfayı yenileyip tekrar deneyin.")
 
 
 def build_dtam_vector(raw_values, ref_ranges, feature_cols):
@@ -209,6 +258,9 @@ if st.button("Risk Hesapla", type="primary", use_container_width=True):
 
     st.subheader("SHAP Açıklaması — Riski Etkileyen Parametreler")
     render_shap(art["explainer"], X_imputed, art["feature_cols"])
+
+st.divider()
+render_log_manager()
 
 st.divider()
 st.caption(
